@@ -10,7 +10,7 @@ import com.example.demo.service.SolutionService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
+import com.example.demo.dto.SolutionWithGroupsDTO;
 import java.util.List;
 import java.util.Set;
 
@@ -41,6 +41,35 @@ public class SolutionServiceImpl implements SolutionService {
 
         return saved;
     }
+
+
+
+    public List<SolutionWithGroupsDTO> getSolutionsWithGroupStatus() {
+        List<Solution> solutions = solutionRepository.findAll(); // fetch all solutions
+        List<SolutionWithGroupsDTO> result = new ArrayList<>();
+
+        for (Solution solution : solutions) {
+            // Fetch all mappings for this solution
+            List<SolutionGroupMapping> mappings = mappingRepository.findBySolutionID(solution.getId());
+            List<SolutionWithGroupsDTO.GroupReviewStatusDTO> groupStatuses = new ArrayList<>();
+
+            for (SolutionGroupMapping mapping : mappings) {
+                groupStatuses.add(SolutionWithGroupsDTO.GroupReviewStatusDTO.builder()
+                        .groupName(mapping.getGroupsID())  // assuming groupsID stores the group name
+                        .status(mapping.getStatus())
+                        .build());
+            }
+
+            result.add(SolutionWithGroupsDTO.builder()
+                    .solutionId(solution.getId())
+                    .solutionName(solution.getName())
+                    .groupReviewStatus(groupStatuses)
+                    .build());
+        }
+
+        return result;
+    }
+
 
     @Override
     public List<Solution> getAllSolutions() {
